@@ -11,7 +11,15 @@ from optparse import OptionParser
 from PicarioServer import *
 
 
-clients = []
+# data structures for managing clients
+maxPlayers = 16
+openIds = []
+clients = {}
+
+# setup data structures for managing clients
+for i in range(1, maxPlayers + 1):
+   openIds.append(i)
+   clients[i] = None
 
 def canJoin():
    return False
