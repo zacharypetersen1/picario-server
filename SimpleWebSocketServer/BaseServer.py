@@ -31,9 +31,10 @@ def refuseConnection(socket):
    print("Refused Connection")
 
 def acceptConnection(socket):
-    id = openIds.pop(0)
-    clients[id] = socket
-    print("Accepted Connection with id:" + str(id))
+    thisID = openIds.pop(0)
+    clients[thisID] = socket
+    socket.myId = thisID
+    print("Accepted Connection with id: " + str(thisID))
 
 # handles client socket organization when client disconnects
 def disconnect(socket):
@@ -45,7 +46,6 @@ def debugClients():
    print("Clients  : " + str(clients))
    print("Open Ids : " + str(openIds))
 
-debugClients()
 
 class Socket(WebSocket):
 
@@ -61,9 +61,11 @@ class Socket(WebSocket):
          acceptConnection(self)
       else:
          refuseConnection(self)
+      debugClients()
 
    def handleClose(self):
       disconnect(self)
+      debugClients()
 
 
 if __name__ == "__main__":
