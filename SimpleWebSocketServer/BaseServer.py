@@ -39,6 +39,7 @@ def acceptConnection(socket):
     thisID = openIds.pop(0)
     clients[thisID] = socket
     socket.myId = thisID
+    socket.sendMessage("Y"+str(thisID))
     print("Accepted Connection with id: " + str(thisID))
 
 # handles client socket organization when client disconnects
@@ -46,6 +47,7 @@ def disconnect(socket):
    if(socket.myId != 0):
       clients[socket.myId] = None
       openIds.append(socket.myId)
+      socket.sendMessage("N")
 
 # prints out the state of client sockets within server
 def debugClients():
