@@ -30,7 +30,8 @@ def canJoin():
 
 #sends a message denying access to server
 def refuseConnection(socket):
-   print("Refused Connection")
+   socket.sendMessage("Game full, unable to connect")
+   #print("Refused Connection")
    socket.close()
 
 #accepts a connection and stores client in a dict
