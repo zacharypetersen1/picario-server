@@ -21,15 +21,18 @@ for i in range(1, maxPlayers + 1):
    openIds.append(i)
    clients[i] = None
 
+#checks if a player can join the game
 def canJoin():
    if not openIds:
        return False
    else:
        return True
 
+#sends a message denying access to server
 def refuseConnection(socket):
    print("Refused Connection")
 
+#accepts a connection and stores client in a dict
 def acceptConnection(socket):
     thisID = openIds.pop(0)
     clients[thisID] = socket
