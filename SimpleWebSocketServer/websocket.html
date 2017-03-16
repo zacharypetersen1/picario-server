@@ -32,6 +32,7 @@
 
   function onClose(evt)
   {
+    document.getElementById("playerNum").innerHTML = "Not Connected";
     writeToScreen("disconnected\n");
 	document.myform.connectButton.disabled = false;
 	document.myform.disconnectButton.disabled = true;
@@ -39,6 +40,10 @@
 
   function onMessage(evt)
   {
+    var str = evt.data;
+    if(str[0] == 'Y'){
+      document.getElementById("playerNum").innerHTML = "You are Player " + str.substring(1);
+    }
     writeToScreen("response: " + evt.data + '\n');
   }
 
@@ -62,7 +67,7 @@
   function writeToScreen(message)
   {
     document.myform.outputtext.value += message
-	document.myform.outputtext.scrollTop = document.myform.outputtext.scrollHeight;
+	 document.myform.outputtext.scrollTop = document.myform.outputtext.scrollHeight;
 
   }
 
@@ -103,6 +108,7 @@
 <input type="button" name=connectButton value="Join Game" onClick="doConnect();">
 </p>
 
+<p id="playerNum">Not Connected</p>
 
 </form>
 </html>
