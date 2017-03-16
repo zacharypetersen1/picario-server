@@ -55,7 +55,7 @@
 
   function doSend(message)
   {
-    writeToScreen("sent: " + message + '\n'); 
+    writeToScreen("sent: " + message + '\n');
     websocket.send(message);
   }
 
@@ -99,11 +99,10 @@
 <p>
 <input type="button" name=sendButton value="Send" onClick="sendText();">
 <input type="button" name=clearButton value="Clear" onClick="clearText();">
-<input type="button" name=disconnectButton value="Disconnect" onClick="doDisconnect();">
-<input type="button" name=connectButton value="Connect" onClick="doConnect();">
+<input type="button" name=disconnectButton value="Leave Game" onClick="doDisconnect();">
+<input type="button" name=connectButton value="Join Game" onClick="doConnect();">
 </p>
 
 
 </form>
-</html> 
-
+</html>
