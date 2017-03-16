@@ -12,7 +12,7 @@ from PicarioServer import *
 
 
 # data structures for managing clients
-maxPlayers = 16
+maxPlayers = 4
 openIds = []
 clients = {}
 
@@ -22,13 +22,14 @@ for i in range(1, maxPlayers + 1):
    clients[i] = None
 
 def canJoin():
-   if not openIds:
+   if len(openIds) == 0:
        return False
    else:
        return True
 
 def refuseConnection(socket):
    print("Refused Connection")
+   socket.close()
 
 def acceptConnection(socket):
     thisID = openIds.pop(0)
@@ -38,12 +39,18 @@ def acceptConnection(socket):
 
 # handles client socket organization when client disconnects
 def disconnect(socket):
-   clients[socket.myId] = None
-   openIds.append(socket.myId)
+   if(socket.myId != 0):
+      clients[socket.myId] = None
+      openIds.append(socket.myId)
 
 # prints out the state of client sockets within server
 def debugClients():
-   print("Clients  : " + str(clients))
+   clientsDebugStr = "{ "
+   for key in clients:
+      clientsDebugStr += str(key) + (":None " if clients[key] == None else ":Sock ")
+   clientsDebugStr += "}"
+
+   print("Clients  : " + clientsDebugStr)
    print("Open Ids : " + str(openIds))
 
 
