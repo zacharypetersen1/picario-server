@@ -22,13 +22,18 @@ for i in range(1, maxPlayers + 1):
    clients[i] = None
 
 def canJoin():
-   return False
+   if not openIds:
+       return False
+   else:
+       return True
 
 def refuseConnection(socket):
    print("Refused Connection")
 
 def acceptConnection(socket):
-   print("Accepted Connection")
+    id = openIds.pop(0)
+    clients[id] = socket
+    print("Accepted Connection with id:" + str(id))
 
 def disconnect(socket):
    print("Disconnected")
