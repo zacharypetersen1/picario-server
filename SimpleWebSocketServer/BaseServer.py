@@ -30,13 +30,21 @@ def refuseConnection(socket):
 def acceptConnection(socket):
    print("Accepted Connection")
 
+# handles client socket organization when client disconnects
 def disconnect(socket):
-   print("Disconnected")
+   clients[socket.myId] = None
+   openIds.append(socket.myId)
 
+# prints out the state of client sockets within server
 def debugClients():
-   pass
+   print("Clients  : " + str(clients))
+   print("Open Ids : " + str(openIds))
+
+debugClients()
 
 class Socket(WebSocket):
+
+   myId = 0
 
    def handleMessage(self):
       for client in clients:
