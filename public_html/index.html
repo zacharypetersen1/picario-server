@@ -96,12 +96,12 @@ canvas{
 				
 		function onOpen(evt)
 		{
-			console.log("connected\n");
+			//console.log("connected\n");
 		}
 
 		function onClose(evt)
 		{
-			console.log("disconnected\n");
+			//console.log("disconnected\n");
 		}
 
 		function onMessage(evt)
@@ -119,12 +119,12 @@ canvas{
 				obj.size = parseInt(parts[3]);
 				QueueSendToPico8(obj);
 			}
-			console.log("response: " + evt.data + '\n');
+			//console.log("response: " + evt.data + '\n');
 		}
 
 		function onError(evt)
 		{
-			console.log('error: ' + evt.data + '\n');
+			//console.log('error: ' + evt.data + '\n');
 			websocket.close();
 		}
 		
@@ -207,7 +207,7 @@ canvas{
 				obj.y = pico8_gpio[PICO_OUTBOUND_PAYLOAD + i * PICO_PAYLOAD_SIZE + 3] * 256 + pico8_gpio[PICO_OUTBOUND_PAYLOAD + i * PICO_PAYLOAD_SIZE + 4];
 				obj.size = pico8_gpio[PICO_OUTBOUND_PAYLOAD + i * PICO_PAYLOAD_SIZE + 5];
 				websocket.send(obj.id + "|" + obj.x + "|" + obj.y + "|" + obj.size);
-				console.log(obj);
+				//console.log(obj);
 			}
 			pico8_gpio[PICO_OUTBOUND_WE] = 1;
 		}
