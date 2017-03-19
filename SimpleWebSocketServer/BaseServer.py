@@ -67,9 +67,9 @@ class Socket(WebSocket):
    myId = 0
 
    def handleMessage(self):
-      for client in clients:
-         if client != self:
-            client.sendMessage(self.address[0] + u' - ' + self.data)
+      for key in clients:
+         if clients[key] != self and clients[key] != None:
+            clients[key].sendMessage(self.data)
 
    def handleConnected(self):
       if(canJoin()):
