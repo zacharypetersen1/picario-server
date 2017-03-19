@@ -19,10 +19,19 @@ def onStart():
 		obj = {"id":i, "x":0, "y":0, "size": 1}
 		setRndLoc(obj)
 		buckets[getObjBucket(obj)].append(obj)
+		objects[i] = obj
 	#debugBuckets()
 
 def onConnect(id):
-	pass
+	print('onConnect@1')
+	outGoingMsgs[id] = []
+	objects[id]['size'] = 3
+	outGoingMsgs[id].append(objects[id])
+	print('onConnect@2')
+	debugOutGoingMessages(id)
+	#initOutgoingMessages(id)
+	#sendReplyMessage(id)
+
 
 def onDisconnect(id):
 	pass
@@ -41,3 +50,7 @@ def setRndLoc(obj):
 def debugBuckets():
 	for key in buckets:
 		print(str(key) + " "+ str(buckets[key]))
+
+def debugOutGoingMessages(id):
+	print('onConnect@3')
+	print("Outgoing for " + str(id) +" " + str(outGoingMsgs[id]))

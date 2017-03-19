@@ -43,6 +43,8 @@ def acceptConnection(socket):
     clients[thisID] = socket
     socket.myId = thisID
     socket.sendMessage("Y"+str(thisID))
+    # Trigger PicarioServer onConnect
+    onConnect(thisID)
     print("Accepted Connection with id: " + str(thisID))
 
 # handles client socket organization when client disconnects
