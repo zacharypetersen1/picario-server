@@ -16,6 +16,9 @@ maxPlayers = 4
 openIds = []
 clients = {}
 
+#starts up PicarioServer
+onStart()
+
 # setup data structures for managing clients
 for i in range(1, maxPlayers + 1):
    openIds.append(i)
@@ -31,7 +34,7 @@ def canJoin():
 #sends a message denying access to server
 def refuseConnection(socket):
    socket.sendMessage("Game full, unable to connect")
-   #print("Refused Connection")
+   print("Refused Connection, game is full")
    socket.close()
 
 #accepts a connection and stores client in a dict
@@ -74,6 +77,7 @@ class Socket(WebSocket):
       else:
          refuseConnection(self)
       debugClients()
+      print("")
 
    def handleClose(self):
       disconnect(self)
