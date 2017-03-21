@@ -17,6 +17,9 @@ maxPlayers = 4
 openIds = []
 clients = {}
 
+#starts up PicarioServer
+onStart()
+
 # setup data structures for managing clients
 for i in range(1, maxPlayers + 1):
    openIds.append(i)
@@ -43,6 +46,7 @@ def acceptConnection(socket):
     socket.myId = thisID
     msg = {"type":"connect", "id": thisID}
     socket.sendMessage(json.dumps(msg))
+    onConnect(thisID)
     print("Accepted Connection with id: " + str(thisID))
 
 # handles client socket organization when client disconnects
@@ -50,6 +54,7 @@ def disconnect(socket):
    if(socket.myId != 0):
       clients[socket.myId] = None
       openIds.append(socket.myId)
+      onDisconnect(socket.myId)
 
 # prints out the state of client sockets within server
 def debugClients():
@@ -77,6 +82,7 @@ class Socket(WebSocket):
       else:
          refuseConnection(self)
       debugClients()
+      print("")
 
    def handleClose(self):
       disconnect(self)
