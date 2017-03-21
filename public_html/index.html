@@ -84,10 +84,14 @@ canvas{
 		*/
 		var pico8_gpio = new Array(128);
 		
-		window.setTimeout(init, 5000);
+		window.onload = init;
 		
 		function init() {
-			websocket = new WebSocket("ws://picariogame.com/ws");
+			if(window.location.protocol == "file:") {
+				websocket = new WebSocket("ws://localhost:8000")
+			} else {
+				websocket = new WebSocket("ws://picariogame.com/ws");
+			}
 			websocket.onopen = function(evt) { onOpen(evt) };
 			websocket.onclose = function(evt) { onClose(evt) };
 			websocket.onmessage = function(evt) { onMessage(evt) };
