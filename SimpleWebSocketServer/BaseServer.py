@@ -82,7 +82,6 @@ class Socket(WebSocket):
       else:
          refuseConnection(self)
       debugClients()
-      print("")
 
    def handleClose(self):
       disconnect(self)
