@@ -3,6 +3,7 @@ The MIT License (MIT)
 Copyright (c) 2013 Dave P.
 '''
 
+import json
 import signal
 import sys
 import ssl
@@ -33,8 +34,9 @@ def canJoin():
 
 #sends a message denying access to server
 def refuseConnection(socket):
-   socket.sendMessage("Game full, unable to connect")
-   print("Refused Connection, game is full")
+   msg = {"type":"error", "message":"Game full, unable to connect"}
+   socket.sendMessage(json.dumps(msg))
+   #print("Refused Connection")
    socket.close()
 
 #accepts a connection and stores client in a dict
@@ -42,8 +44,8 @@ def acceptConnection(socket):
     thisID = openIds.pop(0)
     clients[thisID] = socket
     socket.myId = thisID
-    socket.sendMessage("Y"+str(thisID))
-    # Trigger PicarioServer onConnect
+    msg = {"type":"connect", "id": thisID}
+    socket.sendMessage(json.dumps(msg))
     onConnect(thisID)
     print("Accepted Connection with id: " + str(thisID))
 
