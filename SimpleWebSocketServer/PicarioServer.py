@@ -6,11 +6,12 @@ objects = {}
 outGoingMsgs = {}
 mapSize = pow(2,8) #hard coded in pico-carts
 cellWidth = 64
+cellMax = int(mapSize / cellWidth)
 
 def onStart():
 	# Create empty buckets
-	for i in range(0, int(mapSize/cellWidth)):
-		for j in range(0, int(mapSize/cellWidth)):
+	for i in range(0, cellMax):
+		for j in range(0, cellMax):
 			buckets[(i,j)] = []
 			#buckets[(i,j)].append(int(random.random()*10))
 	
@@ -22,19 +23,48 @@ def onStart():
 		objects[i] = obj
 	#debugBuckets()
 
-def onConnect(id):
-	print('onConnect@1')
-	outGoingMsgs[id] = []
-	objects[id]['size'] = 3
-	outGoingMsgs[id].append(objects[id])
-	print('onConnect@2')
-	debugOutGoingMessages(id)
-	#initOutgoingMessages(id)
-	#sendReplyMessage(id)
+def onConnect(myId):
+	outGoingMsgs[myId] = []
+	objects[myId]['size'] = 3
+	outGoingMsgs[myId].append(objects[myId])
+	#debugOutGoingMessages(myId)
+	thisCell = getObjBucket(objects[myId])
+	for cell in getSelfAndNeighbors(thisCell):
+		for obj in buckets[cell]:
+			outGoingMsgs[myId].append(obj)
 
+	#debugOutGoingMessages(myId)
+	#updateObject(objects[myId])
+	
 
-def onDisconnect(id):
-	pass
+def onDisconnect(myId):
+	debugActivePlayers()
+	objects[myId]['size'] = 1
+	del outGoingMsgs[myId]
+	debugActivePlayers()
+	#updateObject(objects[myId])
+
+def getSelfAndNeighbors(cell):
+	"""Find neighboring cell
+
+	Parameters
+	----------
+	c : tuple
+	(i,j) of cell space.
+
+	>>> getSelfAndNeighbors((1,1)) # doctest: +ELLIPSIS
+	[(0, 0), ..., (2, 2)]
+	>>> len(getSelfAndNeighbors((0,0)))
+	4
+	"""
+	i,j = cell
+	cellList = []
+	for y in range(j-1, j+2):
+		for x in range(i-1, i+2):
+			if(x >= 0 and x < cellMax and y >= 0 and y < cellMax):
+				cellList.append((x, y))
+	return cellList
+
 
 def getObjBucket(obj):
 	return (getBucket(obj['x'], obj['y']))
@@ -51,6 +81,12 @@ def debugBuckets():
 	for key in buckets:
 		print(str(key) + " "+ str(buckets[key]))
 
-def debugOutGoingMessages(id):
+def debugOutGoingMessages(myId):
 	print('onConnect@3')
-	print("Outgoing for " + str(id) +" " + str(outGoingMsgs[id]))
+	print("Outgoing for " + str(myId) +" " + str(outGoingMsgs[myId]))
+
+def debugActivePlayers():
+	if len(outGoingMsgs) == 0:
+		print('No active players')
+	for ids in outGoingMsgs:
+		print("Player id: "+str(ids))

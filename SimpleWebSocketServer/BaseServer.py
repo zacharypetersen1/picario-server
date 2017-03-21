@@ -52,6 +52,7 @@ def disconnect(socket):
    if(socket.myId != 0):
       clients[socket.myId] = None
       openIds.append(socket.myId)
+      onDisconnect(socket.myId)
 
 # prints out the state of client sockets within server
 def debugClients():
