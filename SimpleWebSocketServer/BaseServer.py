@@ -13,7 +13,7 @@ from PicarioServer import *
 
 
 # data structures for managing clients
-maxPlayers = 4
+maxPlayers = 16
 openIds = []
 clients = {}
 
@@ -54,7 +54,7 @@ def disconnect(socket):
    if(socket.myId != 0):
       clients[socket.myId] = None
       openIds.append(socket.myId)
-      onDisconnect(socket.myId)
+      sendOutbound(onDisconnect(socket.myId))
 
 # prints out the state of client sockets within server
 def debugClients():

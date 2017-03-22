@@ -72,27 +72,19 @@ function agario_collide(a,b)
 	local bsize = flr(b.size)
 	if (asize > bsize) then 
 		a.size += b.size/5
-		--b = create_obj(n, rnd(map_size), rnd(map_size), 1)
-		--del(hearts,b)
 		del(collisions,b)
-		objtable[b.id] = create_obj(b.id, rnd(map_size), rnd(map_size), 1)
+		objtable["id"..b.id] = create_obj(b.id, rnd(map_size), rnd(map_size), 1)
 		if b.id != pid then
-			network_send(objtable[b.id])
+			network_send(objtable["id"..b.id])
 		end
 	elseif (asize < bsize) then
 		b.size += a.size/5
-		--a = create_obj(n, rnd(map_size), rnd(map_size), 1)
-		--del(hearts, a)
 		del(collisions,a)
-		objtable[a.id] = create_obj(a.id, rnd(map_size), rnd(map_size), 1)
+		objtable["id"..a.id] = create_obj(a.id, rnd(map_size), rnd(map_size), 1)
 		if a.id != pid then
-			network_send(objtable[a.id])
+			network_send(objtable["id"..a.id])
 		end
 	end
-	--local p = get_player(pl)
-	--if (p.size == 0) then
-	-- p = make_player(0,rnd(map_size),rnd(map_size),start_size)
-	--end
 end
 
 function query_naive(circles, q)
@@ -111,12 +103,14 @@ end
 
 function sweep_naive(circles)
 	local collisions = {}
-	
+	local p = get_player()
 	for q in all(circles) do
-		local results = query_naive(circles, q)
-		for r in all(results) do
-			if r != q then
-				add(collisions, {r,q})
+		if q.id == p.id then
+			local results = query_naive(circles, q)
+			for r in all(results) do
+				if r != q then
+					add(collisions, {r,q})
+				end
 			end
 		end
 	end
@@ -133,6 +127,7 @@ function sweep_hash(hash)
 	return results
 end
 
+--not needed
 function query_hash(hash, query)
 	local results = {}
 	local cells = circle_to_cells(query)
@@ -162,7 +157,7 @@ function query(q)
 end
 --collision stuff end
 
-map_size = 2^(9)
+map_size = 2^(9) - 1
 start_size = 4
 --acceleration stuff
 accel = 0.1
@@ -183,7 +178,7 @@ function _init()
 	
 	pid = -1 --id of player get from network later
 	
-	music(0)
+	--music(0)
 end
 
 function create_obj(_id, _x, _y, _size)
@@ -197,7 +192,7 @@ function create_obj(_id, _x, _y, _size)
 end
 
 function get_player()
-	return objtable[pid]
+	return objtable["id"..pid]
 end
 
 function update_mouse()
@@ -274,6 +269,7 @@ last_ms = 0
 selected = nil
 mx = 0
 my = 0
+num_collisions = 0
 
 function _update60()
 	if pid == -1 then
@@ -284,7 +280,7 @@ function _update60()
 		return
 	end
 	
-	if not objtable[pid] then
+	if not objtable["id"..pid] then
 		attempt_read()
 		return
 	end
@@ -363,12 +359,8 @@ function _draw()
 	local p = get_player()
 	
 	for k, h in pairs(objtable) do
-		if (h == p) then
-			local n = 16+(16*p.id)
-			sspr(n,0,16,16,h.x-h.size,h.y-h.size,h.size*2,h.size*2)
-		else
-			sspr(16,0,16,16,h.x-h.size,h.y-h.size,h.size*2,h.size*2)
-		end
+		local n = 16+(16*(h.id%7))
+		sspr(n,0,16,16,h.x-h.size,h.y-h.size,h.size*2,h.size*2)
 	end
 
 	draw_mouse()
@@ -382,14 +374,22 @@ function _draw()
 	--line(mx-4,my,mx+4,my,7)
 	--line(mx,my-4,mx,my+4,7)
 	
-	--print("%cpu: "..stat(1),cam_x+1,cam_y+1,7)
-	--print("#col: "..num_collisions,cam_x+1,cam_y+7,7)
-	--print("mode: "..(hash_mode and "hash" or "naive"),cam_x+1,cam_y+14,7)
+	print("%cpu: "..stat(1),cam_x+1,cam_y+1,7)
+	print("#col: "..num_collisions,cam_x+1,cam_y+7,7)
+	print(countstuff(),cam_x+1,cam_y+14,7)
 
 	color()
 	cursor(1, 24)
 	foreach(debug_log, print)
 	debug_log = {}
+end
+
+function countstuff()
+	local n = 0
+	for k,v in pairs(objtable) do
+		n += 1
+	end
+	return n
 end
 
 --begin network code
@@ -471,10 +471,10 @@ function attempt_read()
 		local y = peek(_inbound_payload + i * _payload_size + 3) * 256 + peek(_inbound_payload + i * _payload_size + 4)
 		local size = peek(_inbound_payload + i * _payload_size + 5)
 		if size == 0 then
-			del(objtable, objtable[id])
+			objtable["id"..id] = nil
 		else
 			local obj = create_obj(id, x, y, size)
-			objtable[id] = obj
+			objtable["id"..id] = obj
 		end
 	end
 	poke(_inbound_we, 1)
@@ -652,10 +652,10 @@ __sfx__
 000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 010f00002227022270222702227022000180002200022000222702200022270222702027022270222701800022270222702227022270180001800018000180002227018000222702227020270222702227000000
 010f00002227022270222702227018200192002427025271252712527122270222701800018000202702027020270202701e2701e27018000180001b2701b2701b2701b2701d2701d2701e2701e2701b2701b270
-001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+010f00000f0500f0500f0500f02000000000000f0500f0500f0500f02000000000000f0500f0500f0500f0200b0500b0500b0500b02000000000000b0500b0500b0500b02000000000000b0500b0500b0500b020
+010f0000060500605006050060200000000000060500605006050060200000000000060500605006050060200a0500a0500a0500a02000000000000a0500a0500a0500a02000000000000a0500a0500a0500a020
+010f00001b23022230222302223022230220002200018000220002223022000222302223020230222302223018000222302223022230222301800018000000000000022230180002223022230202302223022230
+010f0000222002223022230222302223018200192002423025231252312523122230222301800018000202302023020230202301e2301e23018000180001b2301b2301b2301b2301d2301d2301e2301e2301b230
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
@@ -714,8 +714,8 @@ __sfx__
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __music__
-01 014a4344
-02 02424344
+01 01050344
+02 02060444
 00 41424344
 00 41424344
 00 41424344

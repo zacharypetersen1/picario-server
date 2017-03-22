@@ -1,11 +1,12 @@
+import math
 import random
 
 cells = {}
 objects = {}
 playerMsgs = {}
-mapSize = pow(2,9) #hard coded in pico-carts
+mapSize = pow(2,9) - 1 #hard coded in pico-carts
 cellWidth = 64
-cellMax = int(mapSize / cellWidth)
+cellMax = math.ceil(mapSize / cellWidth)
 
 def initRandom():
 	# Create empty cells
@@ -38,7 +39,7 @@ def onStart():
 
 def addPlayer(myId):
 	playerMsgs[myId] = []
-	objects[myId]['size'] = 3
+	objects[myId]['size'] = 4
 	playerMsgs[myId].append(objects[myId])
 	thisCell = objGetCellIndex(objects[myId])
 	for cellIndex in getSelfAndNeighbors(thisCell):
@@ -128,9 +129,12 @@ def treatAsCreate(leaving, arriving):
 def onDisconnect(myId):
 	debugActivePlayers()
 	objects[myId]['size'] = 1
+	cellIndex = objGetCellIndex(objects[myId])
+	surroundingCells = getSelfAndNeighbors(cellIndex)
+	updateInTheseCells(surroundingCells, objects[myId])
 	del playerMsgs[myId]
 	debugActivePlayers()
-	#updateObject(objects[myId])
+	return playerMsgs
 
 def getSelfAndNeighbors(cellIndex):
 	"""Find neighboring cell
