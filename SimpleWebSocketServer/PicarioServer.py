@@ -2,7 +2,7 @@ import random
 
 cells = {}
 objects = {}
-outGoingMsgs = {}
+playerMsgs = {}
 mapSize = pow(2,9) #hard coded in pico-carts
 cellWidth = 64
 cellMax = int(mapSize / cellWidth)
@@ -47,7 +47,7 @@ def addPlayer(myId):
 
 def onConnect(myId):
 	addPlayer(myId)
-	return outGoingMsgs
+	return playerMsgs
 	
 def onMessage(myId, objectToUpdate):
 	# gather info about cells
@@ -71,10 +71,10 @@ def onMessage(myId, objectToUpdate):
 
 	if(leavingCell != arrivingCell):
 		destroyInTheseCells(destroyCells, objectToUpdate)
-		# destroy self in "cells"
+		del(cells[leavingCell][objectToUpdate["id"]])
 	
 	updateInTheseCells(arrivingCells, objectToUpdate)
-	# add/update self in "cells"
+	cells[arrivingCell][objectToUpdate["id"]] = objectToUpdate
 	return playerMsgs
 
 def destroyInTheseCells(destroyCells, message):
