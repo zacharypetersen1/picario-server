@@ -3,7 +3,7 @@ import random
 cells = {}
 objects = {}
 outGoingMsgs = {}
-mapSize = pow(2,8) #hard coded in pico-carts
+mapSize = pow(2,9) #hard coded in pico-carts
 cellWidth = 64
 cellMax = int(mapSize / cellWidth)
 
@@ -34,9 +34,9 @@ def onConnect(myId):
 
 	#debugOutGoingMessages(myId)
 	#updateObject(objects[myId])
+	return outGoingMsgs
 	
 def onMessage(myId, objectToUpdate):
-	return 
 	# gather info about cells
 	leavingCell = objGetCellIndex(objects[objectToUpdate["id"]])	# object's cell location currently stored in memory
 	arrivingCell = objGetCellIndex(objectToUpdate)					# object's cell location given new position

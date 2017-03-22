@@ -88,7 +88,7 @@ canvas{
 		
 		function init() {
 			if(window.location.protocol == "file:") {
-				websocket = new WebSocket("ws://localhost:8000")
+				websocket = new WebSocket("ws://localhost:8000");
 			} else {
 				websocket = new WebSocket("ws://picariogame.com/ws");
 			}
@@ -117,7 +117,7 @@ canvas{
 			if(msg["type"] == "obj") {
 				QueueSendToPico8(msg);
 			}
-			//console.log("response: " + evt.data + '\n');
+			console.log("response: " + evt.data + '\n');
 		}
 
 		function onError(evt)
