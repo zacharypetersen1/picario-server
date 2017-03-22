@@ -2,38 +2,51 @@ import random
 
 cells = {}
 objects = {}
-outGoingMsgs = {}
+playerMsgs = {}
 mapSize = pow(2,8) #hard coded in pico-carts
 cellWidth = 64
 cellMax = int(mapSize / cellWidth)
 
-def onStart():
+def initRandom():
 	# Create empty cells
 	for i in range(0, cellMax):
 		for j in range(0, cellMax):
-			cells[(i,j)] = []
-			#cells[(i,j)].append(int(random.random()*10))
-	
+			cells[(i,j)] = {}	
 	# Generate objects 1-255
 	for i in range(1, 256):
 		obj = {"type":"obj", "id":i, "x":0, "y":0, "size": 1}
 		setRndLoc(obj)
-		cells[objGetCellIndex(obj)].append(obj)
+		cells[objGetCellIndex(obj)][i] = obj
 		objects[i] = obj
-	#debugCells()
+
+def initTest():
+	# Create empty cells
+	for i in range(0, cellMax):
+		for j in range(0, cellMax):
+			cells[(i,j)] = {}	
+	# Generate objects 1-255
+	for i in range(1, 256):
+		obj = {"type":"obj", "id":i, "x":0, "y":0, "size": 1}
+		obj["x"] = i
+		obj["y"] = i
+		cells[objGetCellIndex(obj)][i] = obj
+		objects[i] = obj
+	addPlayer(1)
+
+def onStart():
+	initRandom()
+
+def addPlayer(myId):
+	playerMsgs[myId] = []
+	objects[myId]['size'] = 3
+	playerMsgs[myId].append(objects[myId])
+	thisCell = objGetCellIndex(objects[myId])
+	for cellIndex in getSelfAndNeighbors(thisCell):
+		for key, obj in cells[cellIndex].items():
+			playerMsgs[myId].append(obj)
 
 def onConnect(myId):
-	outGoingMsgs[myId] = []
-	objects[myId]['size'] = 3
-	outGoingMsgs[myId].append(objects[myId])
-	#debugOutGoingMessages(myId)
-	thisCell = objGetCellIndex(objects[myId])
-	for cell in getSelfAndNeighbors(thisCell):
-		for obj in cells[cell]:
-			outGoingMsgs[myId].append(obj)
-
-	#debugOutGoingMessages(myId)
-	#updateObject(objects[myId])
+	addPlayer(myId)
 	
 def onMessage(myId, objectToUpdate):
 	return 
@@ -48,35 +61,33 @@ def onMessage(myId, objectToUpdate):
 	# if this object is a player then update that player
 	if(isPlayer(objectToUpdate["id"]) and (leavingCell != arrivingCell)):
 		for cellIndex in destroyCells:
-			for obj in cells[cellIndex]:
+			for key, obj in cells[cellIndex].items():
 				destroyMsg = obj.copy()
 				destroyMsg["size"] = 0
-				outGoingMsgs[objectToUpdate["id"]].append(destroyMsg)
+				playerMsgs[objectToUpdate["id"]].append(destroyMsg)
 		for cellIndex in createCells:
-			for obj in cells[cellIndex]:
-				outGoingMsgs[objectToUpdate["id"]].append(obj)
+			for key, obj in cells[cellIndex].items():
+				playerMsgs[objectToUpdate["id"]].append(obj)
 
 	if(leavingCell != arrivingCell):
 		destroyInTheseCells(destroyCells, objectToUpdate)
 		# destroy self in "cells"
 	
 	updateInTheseCells(arrivingCells, objectToUpdate)
-
 	# add/update self in "cells"
-
-	return outGoingMsgs
+	return playerMsgs
 
 def destroyInTheseCells(destroyCells, message):
 	destroyMsg = message.copy()
 	destroyMsg["size"] = 0
 	for cellIndex in destroyCells:
 		for playerID in getPlayerIDsInCell(cellIndex):
-			outGoingMsgs[playerID].append(destroyMsg)
+			playerMsgs[playerID].append(destroyMsg)
 
 def updateInTheseCells(updateCells, message):
 	for cellIndex in updateCells:
 		for playerID in getPlayerIDsInCell(cellIndex):
-			outGoingMsgs[playerID].append(message)
+			playerMsgs[playerID].append(message)
 
 def treatAsDestroy(leaving, arriving):
 	"""
@@ -105,11 +116,11 @@ def treatAsCreate(leaving, arriving):
 def onDisconnect(myId):
 	debugActivePlayers()
 	objects[myId]['size'] = 1
-	del outGoingMsgs[myId]
+	del playerMsgs[myId]
 	debugActivePlayers()
 	#updateObject(objects[myId])
 
-def getSelfAndNeighbors(cell):
+def getSelfAndNeighbors(cellIndex):
 	"""Find neighboring cell
 
 	Parameters
@@ -122,7 +133,7 @@ def getSelfAndNeighbors(cell):
 	>>> len(getSelfAndNeighbors((0,0)))
 	4
 	"""
-	i,j = cell
+	i,j = cellIndex
 	cellList = []
 	for y in range(j-1, j+2):
 		for x in range(i-1, i+2):
@@ -131,11 +142,11 @@ def getSelfAndNeighbors(cell):
 	return cellList
 
 def isPlayer(playerID):
-	return playerID in outGoingMsgs
+	return playerID in playerMsgs
 
 def getPlayerIDsInCell(cellIndex):
 	playerIDs = []
-	for obj in cells[cellIndex]:
+	for key, obj in cells[cellIndex].items():
 		if isPlayer(obj[id]):
 			playerIDs.append(obj[id])
 	return playerIDs
@@ -152,15 +163,14 @@ def setRndLoc(obj):
 	obj['y'] = int(random.random() * mapSize)
 
 def debugCells():
-	for key in cells:
-		print(str(key) + " "+ str(cells[key]))
+	for cellIndex in cells:
+		print(str(cellIndex) + " "+ str(cells[cellIndex]))
 
 def debugOutGoingMessages(myId):
-	print('onConnect@3')
-	print("Outgoing for " + str(myId) +" " + str(outGoingMsgs[myId]))
+	print("Outgoing for " + str(myId) +" " + str(playerMsgs[myId]))
 
 def debugActivePlayers():
-	if len(outGoingMsgs) == 0:
+	if len(playerMsgs) == 0:
 		print('No active players')
-	for ids in outGoingMsgs:
-		print("Player id: "+str(ids))
+	for playerID in playerMsgs:
+		print("Player id: " + str(playerID))
