@@ -13,7 +13,7 @@ from PicarioServer import *
 
 
 # data structures for managing clients
-maxPlayers = 16
+maxPlayers = 64
 openIds = []
 clients = {}
 
