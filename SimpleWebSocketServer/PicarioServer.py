@@ -58,36 +58,52 @@ def onMessage(myId, objectToUpdate):
 	destroyCells = treatAsDestroy(leavingCells, arrivingCells)		# cells that object was near and is no longer near
 	createCells = treatAsCreate(leavingCells, arrivingCells)		# cells that object was not near and is now near
 	
+	print(leavingCell)
+	print(arrivingCell)
+	print(leavingCells)
+	print(arrivingCells)
+	print(destroyCells)
+	print(createCells)
+	
 	# if this object is a player then update that player
 	if(isPlayer(objectToUpdate["id"]) and (leavingCell != arrivingCell)):
 		for cellIndex in destroyCells:
 			for key, obj in cells[cellIndex].items():
 				destroyMsg = obj.copy()
 				destroyMsg["size"] = 0
-				playerMsgs[objectToUpdate["id"]].append(destroyMsg)
+				if objectToUpdate["id"] != destroyMsg["id"]:
+					playerMsgs[objectToUpdate["id"]].append(destroyMsg)
 		for cellIndex in createCells:
 			for key, obj in cells[cellIndex].items():
-				playerMsgs[objectToUpdate["id"]].append(obj)
-
+				if objectToUpdate["id"] != obj["id"]:
+					playerMsgs[objectToUpdate["id"]].append(obj)
+				
 	if(leavingCell != arrivingCell):
 		destroyInTheseCells(destroyCells, objectToUpdate)
-		del(cells[leavingCell][objectToUpdate["id"]])
+		if objectToUpdate["id"] in cells[leavingCell]:
+			del cells[leavingCell][objectToUpdate["id"]]
 	
 	updateInTheseCells(arrivingCells, objectToUpdate)
 	cells[arrivingCell][objectToUpdate["id"]] = objectToUpdate
 	return playerMsgs
+	
+def clearMessages():
+	for key in playerMsgs:
+		playerMsgs[key] = []
 
 def destroyInTheseCells(destroyCells, message):
 	destroyMsg = message.copy()
 	destroyMsg["size"] = 0
 	for cellIndex in destroyCells:
 		for playerID in getPlayerIDsInCell(cellIndex):
-			playerMsgs[playerID].append(destroyMsg)
+			if playerID != destroyMsg["id"]:
+				playerMsgs[playerID].append(destroyMsg)
 
 def updateInTheseCells(updateCells, message):
 	for cellIndex in updateCells:
 		for playerID in getPlayerIDsInCell(cellIndex):
-			playerMsgs[playerID].append(message)
+			if playerID != message["id"]:
+				playerMsgs[playerID].append(message)
 
 def treatAsDestroy(leaving, arriving):
 	"""
@@ -147,8 +163,8 @@ def isPlayer(playerID):
 def getPlayerIDsInCell(cellIndex):
 	playerIDs = []
 	for key, obj in cells[cellIndex].items():
-		if isPlayer(obj[id]):
-			playerIDs.append(obj[id])
+		if isPlayer(obj['id']):
+			playerIDs.append(obj['id'])
 	return playerIDs
 
 def objGetCellIndex(obj):

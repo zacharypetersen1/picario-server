@@ -71,6 +71,7 @@ def sendOutbound(outBound):
       if (outBound[key] != None):
          for msg in outBound[key]:
             clients[key].sendMessage(json.dumps(msg))
+   clearMessages()
 
 class Socket(WebSocket):
 
