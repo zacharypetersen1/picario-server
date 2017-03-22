@@ -419,7 +419,7 @@ function _draw()
 	for k, h in pairs(objtable) do
 		local n = 16+(16*(h.id%7))
 		local drawsize = h.size / 250 * max_player_size
-		sspr(n,0,16,16,h.x-drawsize/2,h.y-drawsize/2,drawsize,drawsize)
+		sspr(n,0,16,16,flr(h.x)-drawsize/2,flr(h.y)-drawsize/2,drawsize,drawsize)
 	end
 
 	draw_mouse()
