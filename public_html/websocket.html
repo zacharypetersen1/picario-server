@@ -68,7 +68,9 @@
   {
     document.myform.outputtext.value += message
 	 document.myform.outputtext.scrollTop = document.myform.outputtext.scrollHeight;
-
+	if(document.myform.outputtext.value.split(/\r\n|\r|\n/).length > 200) {
+		document.myform.outputtext.value = document.myform.outputtext.value.split(/\r\n|\r|\n/).slice(100).join('\n');
+	}
   }
 
   window.addEventListener("load", init, false);
