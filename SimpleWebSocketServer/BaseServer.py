@@ -43,9 +43,10 @@ def acceptConnection(socket):
     thisID = openIds.pop(0)
     clients[thisID] = socket
     socket.myId = thisID
+    outBound = onConnect(thisID)
+    sendOutbound(outBound)
     msg = {"type":"connect", "id": thisID}
     socket.sendMessage(json.dumps(msg))
-    onConnect(thisID)
     print("Accepted Connection with id: " + str(thisID))
 
 # handles client socket organization when client disconnects
@@ -65,6 +66,11 @@ def debugClients():
    print("Clients  : " + clientsDebugStr)
    print("Open Ids : " + str(openIds))
 
+def sendOutbound(outBound):
+   for key in outBound:
+      if (outBound[key] != None):
+         for msg in outBound[key]:
+            clients[key].sendMessage(json.dumps(msg))
 
 class Socket(WebSocket):
 
@@ -73,7 +79,7 @@ class Socket(WebSocket):
    def handleMessage(self):
       message = json.loads(self.data)
       if message['type'] == 'obj':
-         onMessage(self.myId, message)
+         sendOutbound(onMessage(self.myId, message))
 
    def handleConnected(self):
       if(canJoin()):
