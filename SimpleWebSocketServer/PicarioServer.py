@@ -36,7 +36,7 @@ def onConnect(myId):
 	#updateObject(objects[myId])
 	
 def onMessage(myId, objectToUpdate):
-	
+	return 
 	# gather info about cells
 	leavingCell = objGetCellIndex(objects[objectToUpdate["id"]])	# object's cell location currently stored in memory
 	arrivingCell = objGetCellIndex(objectToUpdate)					# object's cell location given new position
