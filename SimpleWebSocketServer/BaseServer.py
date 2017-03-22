@@ -3,6 +3,7 @@ The MIT License (MIT)
 Copyright (c) 2013 Dave P.
 '''
 
+import json
 import signal
 import sys
 import ssl
@@ -15,6 +16,9 @@ from PicarioServer import *
 maxPlayers = 4
 openIds = []
 clients = {}
+
+#starts up PicarioServer
+onStart()
 
 # setup data structures for managing clients
 for i in range(1, maxPlayers + 1):
@@ -30,7 +34,8 @@ def canJoin():
 
 #sends a message denying access to server
 def refuseConnection(socket):
-   socket.sendMessage("Game full, unable to connect")
+   msg = {"type":"error", "message":"Game full, unable to connect"}
+   socket.sendMessage(json.dumps(msg))
    #print("Refused Connection")
    socket.close()
 
@@ -39,7 +44,9 @@ def acceptConnection(socket):
     thisID = openIds.pop(0)
     clients[thisID] = socket
     socket.myId = thisID
-    socket.sendMessage("Y"+str(thisID))
+    msg = {"type":"connect", "id": thisID}
+    socket.sendMessage(json.dumps(msg))
+    onConnect(thisID)
     print("Accepted Connection with id: " + str(thisID))
 
 # handles client socket organization when client disconnects
@@ -47,6 +54,7 @@ def disconnect(socket):
    if(socket.myId != 0):
       clients[socket.myId] = None
       openIds.append(socket.myId)
+      onDisconnect(socket.myId)
 
 # prints out the state of client sockets within server
 def debugClients():

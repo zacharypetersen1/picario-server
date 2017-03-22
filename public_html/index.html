@@ -84,10 +84,14 @@ canvas{
 		*/
 		var pico8_gpio = new Array(128);
 		
-		window.setTimeout(init, 5000);
+		window.onload = init;
 		
 		function init() {
-			websocket = new WebSocket("ws://" + window.location.host + "/ws");
+			if(window.location.protocol == "file:") {
+				websocket = new WebSocket("ws://localhost:8000")
+			} else {
+				websocket = new WebSocket("ws://picariogame.com/ws");
+			}
 			websocket.onopen = function(evt) { onOpen(evt) };
 			websocket.onclose = function(evt) { onClose(evt) };
 			websocket.onmessage = function(evt) { onMessage(evt) };
@@ -106,18 +110,12 @@ canvas{
 
 		function onMessage(evt)
 		{
-			var str = evt.data;
-			if(str[0] == 'Y') {
-				pico8_gpio[0] = parseInt(str.substring(1));
+			var msg = JSON.parse(evt.data);
+			if(msg["type"] == "connect") {
+				pico8_gpio[0] = parseInt(msg["id"]);
 			}
-			var parts = str.split("|");
-			if(parts.length == 4) {
-				var obj = new Object();
-				obj.id = parseInt(parts[0]);
-				obj.x = parseInt(parts[1]);
-				obj.y = parseInt(parts[2]);
-				obj.size = parseInt(parts[3]);
-				QueueSendToPico8(obj);
+			if(msg["type"] == "obj") {
+				QueueSendToPico8(msg);
 			}
 			//console.log("response: " + evt.data + '\n');
 		}
@@ -202,11 +200,12 @@ canvas{
 			var num = pico8_gpio[PICO_OUTBOUND_NUM_PAYLOAD];
 			for(var i = 0; i < num; i++) {
 				var obj = new Object();
+				obj.type = "obj"
 				obj.id = pico8_gpio[PICO_OUTBOUND_PAYLOAD + i * PICO_PAYLOAD_SIZE + 0];
 				obj.x = pico8_gpio[PICO_OUTBOUND_PAYLOAD + i * PICO_PAYLOAD_SIZE + 1] * 256 + pico8_gpio[PICO_OUTBOUND_PAYLOAD + i * PICO_PAYLOAD_SIZE + 2];
 				obj.y = pico8_gpio[PICO_OUTBOUND_PAYLOAD + i * PICO_PAYLOAD_SIZE + 3] * 256 + pico8_gpio[PICO_OUTBOUND_PAYLOAD + i * PICO_PAYLOAD_SIZE + 4];
 				obj.size = pico8_gpio[PICO_OUTBOUND_PAYLOAD + i * PICO_PAYLOAD_SIZE + 5];
-				websocket.send(obj.id + "|" + obj.x + "|" + obj.y + "|" + obj.size);
+				websocket.send(JSON.stringify(obj));
 				//console.log(obj);
 			}
 			pico8_gpio[PICO_OUTBOUND_WE] = 1;
