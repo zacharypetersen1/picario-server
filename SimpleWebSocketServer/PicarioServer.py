@@ -15,7 +15,7 @@ def initRandom():
 			cells[(i,j)] = {}	
 	# Generate objects 1-255
 	for i in range(1, 256):
-		obj = {"type":"obj", "id":i, "x":0, "y":0, "size": 1}
+		obj = {"type":"obj", "id":i, "x":0, "y":0, "size": 5}
 		setRndLoc(obj)
 		cells[objGetCellIndex(obj)][i] = obj
 		objects[i] = obj
@@ -27,7 +27,7 @@ def initTest():
 			cells[(i,j)] = {}	
 	# Generate objects 1-255
 	for i in range(1, 256):
-		obj = {"type":"obj", "id":i, "x":0, "y":0, "size": 1}
+		obj = {"type":"obj", "id":i, "x":0, "y":0, "size": 5}
 		obj["x"] = i
 		obj["y"] = i
 		cells[objGetCellIndex(obj)][i] = obj
@@ -39,7 +39,7 @@ def onStart():
 
 def addPlayer(myId):
 	playerMsgs[myId] = []
-	objects[myId]['size'] = 4
+	objects[myId]['size'] = 20
 	playerMsgs[myId].append(objects[myId])
 	thisCell = objGetCellIndex(objects[myId])
 	for cellIndex in getSelfAndNeighbors(thisCell):
@@ -128,7 +128,8 @@ def treatAsCreate(leaving, arriving):
 
 def onDisconnect(myId):
 	debugActivePlayers()
-	objects[myId]['size'] = 1
+	objects[myId]['size'] = 5
+	setRndLoc(objects[myId])
 	cellIndex = objGetCellIndex(objects[myId])
 	surroundingCells = getSelfAndNeighbors(cellIndex)
 	updateInTheseCells(surroundingCells, objects[myId])

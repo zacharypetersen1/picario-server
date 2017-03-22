@@ -2,6 +2,7 @@ pico-8 cartridge // http://www.pico-8.com
 version 8
 __lua__
 cell_size = 16
+max_player_size = 64
 
 debug_mode = true
 debug_log =  {}
@@ -28,8 +29,9 @@ function pixel_to_cell(x, y)
 end
 
 function circle_to_cells(c)
-	top_left = pixel_to_cell(c.x - c.size, c.y - c.size)
-	bot_right = pixel_to_cell(c.x + c.size, c.y + c.size)
+	local csize = c.size / 250 * max_player_size / 2
+	top_left = pixel_to_cell(c.x - csize, c.y - csize)
+	bot_right = pixel_to_cell(c.x + csize, c.y + csize)
 	
 	cells = {}
 	for x = top_left[1], bot_right[1] do
@@ -68,19 +70,25 @@ function agario_collide(a,b)
 		del(collisions,b)
 		return
 	end
-	local asize = flr(a.size)
-	local bsize = flr(b.size)
+	local asize = flr(a.size / 250 * max_player_size) / 2
+	local bsize = flr(b.size / 250 * max_player_size) / 2
 	if (asize > bsize) then 
 		a.size += b.size/5
+		if a.size > 250 then
+			a.size = 250
+		end
 		del(collisions,b)
-		objtable["id"..b.id] = create_obj(b.id, rnd(map_size), rnd(map_size), 1)
+		objtable["id"..b.id] = create_obj(b.id, rnd(map_size), rnd(map_size), 5)
 		if b.id != pid then
 			network_send(objtable["id"..b.id])
 		end
 	elseif (asize < bsize) then
 		b.size += a.size/5
+		if b.size > 250 then
+			b.size = 250
+		end
 		del(collisions,a)
-		objtable["id"..a.id] = create_obj(a.id, rnd(map_size), rnd(map_size), 1)
+		objtable["id"..a.id] = create_obj(a.id, rnd(map_size), rnd(map_size), 5)
 		if a.id != pid then
 			network_send(objtable["id"..a.id])
 		end
@@ -89,10 +97,12 @@ end
 
 function query_naive(circles, q)
 	local results = {}
+	local qsize = q.size / 250 * max_player_size / 2
 	for c in all(circles) do
+		local csize = c.size / 250 * max_player_size / 2
 		local dx = c.x-q.x
 		local dy = c.y-q.y
-		local k = c.size+q.size
+		local k = csize+qsize
 		local d2 = dx*dx+dy*dy
 		if d2 < k*k then
 			add(results, c)
@@ -178,7 +188,7 @@ function _init()
 	
 	pid = -1 --id of player get from network later
 	
-	--music(0)
+	music(0)
 end
 
 function create_obj(_id, _x, _y, _size)
@@ -218,33 +228,32 @@ function player_movement()
 		dy = 0
 	end
 	
-	
-	if (btn(0) or dx<-p.size) then
+	if (btn(0) or dx<-1) then
 		target_vx = -speed
-	elseif (btn(1) or dx>p.size) then 
+	elseif (btn(1) or dx>1) then 
 		target_vx = speed
 	else
 		target_vx = 0
 	end
 	
-	if (btn(2) or dy<-p.size) then 
+	if (btn(2) or dy<-1) then 
 		target_vy = -speed
-	elseif (btn(3) or dy>p.size) then 
+	elseif (btn(3) or dy>1) then 
 		target_vy = speed
 	else
 		target_vy = 0
 	end
 	
- if (cur_vx<target_vx) then 
- 	cur_vx+=accel
+	if (cur_vx<target_vx) then 
+		cur_vx+=accel
 	elseif (cur_vx>target_vx) then 
-		cur_vx-=accel 
+		cur_vx-=accel
 	end
 	
 	if (cur_vy<target_vy) then 
 		cur_vy+=accel
 	elseif (cur_vy>target_vy) then 
-		cur_vy-=accel 
+		cur_vy-=accel
 	end
 	
 	p.x+=cur_vx
@@ -270,6 +279,7 @@ selected = nil
 mx = 0
 my = 0
 num_collisions = 0
+musicon = 1
 
 function _update60()
 	if pid == -1 then
@@ -283,6 +293,17 @@ function _update60()
 	if not objtable["id"..pid] then
 		attempt_read()
 		return
+	end
+	
+	if btnp(4) then
+		music(musicon * -1)
+		musicon = (musicon + 1) % 2
+	end
+	
+	local p = get_player()
+	if p.size < 20 then
+		p.size = 20
+		network_send(p)
 	end
 
 	player_movement()
@@ -338,6 +359,13 @@ function draw_mouse()
 	line(mx,my-4,mx,my+4,7)
 end
 
+function draw_grid()
+	for r = 128, map_size, 128 do
+		line(r, 0, r, map_size, 5)
+		line(0, r, map_size, r, 5)
+	end
+end
+
 function _draw()
 	if not gamestart then
 		return
@@ -354,13 +382,15 @@ function _draw()
  	line(-4,-4,map_size+4,-4,8)
 	line(map_size+4,map_size+4,map_size+4,-4,8)
  	line(map_size+4,map_size+4,-4,map_size+4,8)
+	draw_grid()
 	camera(cam_x,cam_y)
 	
 	local p = get_player()
 	
 	for k, h in pairs(objtable) do
 		local n = 16+(16*(h.id%7))
-		sspr(n,0,16,16,h.x-h.size,h.y-h.size,h.size*2,h.size*2)
+		local drawsize = h.size / 250 * max_player_size
+		sspr(n,0,16,16,h.x-drawsize/2,h.y-drawsize/2,drawsize,drawsize)
 	end
 
 	draw_mouse()
