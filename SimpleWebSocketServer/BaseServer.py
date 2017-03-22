@@ -36,7 +36,6 @@ def canJoin():
 def refuseConnection(socket):
    msg = {"type":"error", "message":"Game full, unable to connect"}
    socket.sendMessage(json.dumps(msg))
-   #print("Refused Connection")
    socket.close()
 
 #accepts a connection and stores client in a dict
@@ -72,20 +71,18 @@ class Socket(WebSocket):
    myId = 0
 
    def handleMessage(self):
-      for key in clients:
-         if clients[key] != self and clients[key] != None:
-            clients[key].sendMessage(self.data)
+      message = json.loads(self.data)
+      if message['type'] == 'obj':
+         onMessage(self.myId, message)
 
    def handleConnected(self):
       if(canJoin()):
          acceptConnection(self)
       else:
          refuseConnection(self)
-      debugClients()
 
    def handleClose(self):
       disconnect(self)
-      debugClients()
 
 
 if __name__ == "__main__":
