@@ -58,12 +58,8 @@ def onMessage(myId, objectToUpdate):
 	destroyCells = treatAsDestroy(leavingCells, arrivingCells)		# cells that object was near and is no longer near
 	createCells = treatAsCreate(leavingCells, arrivingCells)		# cells that object was not near and is now near
 	
-	print(leavingCell)
-	print(arrivingCell)
-	print(leavingCells)
-	print(arrivingCells)
-	print(destroyCells)
-	print(createCells)
+	# update myself
+	objects[objectToUpdate["id"]] = objectToUpdate
 	
 	# if this object is a player then update that player
 	if(isPlayer(objectToUpdate["id"]) and (leavingCell != arrivingCell)):
