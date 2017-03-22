@@ -171,7 +171,7 @@ map_size = 2^(9) - 1
 start_size = 4
 --acceleration stuff
 accel = 0.1
-speed = 1
+speed = 1.5
 target_vx = 0
 target_vy = 0
 cur_vx = 0
@@ -223,36 +223,50 @@ function player_movement()
 		dx = mx - p.x
 		dy = my - p.y
 	elseif (ms==0) then
-		dx = 0
-		dy = 0
+		if btn(0) then
+			dx = -1
+		elseif btn(1) then
+			dx = 1
+		else
+			dx = 0
+		end
+		if btn(2) then
+			dy = -1
+		elseif btn(3) then
+			dy = 1
+		else
+			dy = 0
+		end
 	end
 	
-	if (btn(0) or dx<-1) then
-		target_vx = -speed
-	elseif (btn(1) or dx>1) then 
-		target_vx = speed
+	local maxspeed = speed
+	if p.size > 50 then
+		maxspeed = speed - min(p.size / 200, .75)
+	end
+	local dm = sqrt(dx^2+dy^2)
+	if dm < 1 then
+		if abs(cur_vx) > 0 then
+			cur_vx -= accel * cur_vx / abs(cur_vx)
+			if abs(cur_vx - flr(abs(cur_vx))) < .1 then
+				cur_vx = 0
+			end
+		end
+		if abs(cur_vy) > 0 then
+			cur_vy -= accel * cur_vy / abs(cur_vy)
+			if abs(cur_vy - flr(abs(cur_vy))) < .1 then
+				cur_vy = 0
+			end
+		end
 	else
-		target_vx = 0
-	end
-	
-	if (btn(2) or dy<-1) then 
-		target_vy = -speed
-	elseif (btn(3) or dy>1) then 
-		target_vy = speed
-	else
-		target_vy = 0
-	end
-	
-	if (cur_vx<target_vx) then 
-		cur_vx+=accel
-	elseif (cur_vx>target_vx) then 
-		cur_vx-=accel
-	end
-	
-	if (cur_vy<target_vy) then 
-		cur_vy+=accel
-	elseif (cur_vy>target_vy) then 
-		cur_vy-=accel
+		dx /= dm
+		dy /= dm
+		cur_vx += dx * accel
+		cur_vy += dy * accel
+		local vmag = sqrt(cur_vx^2+cur_vy^2)
+		if vmag > maxspeed then
+			cur_vx /= (vmag / maxspeed)
+			cur_vy /= (vmag / maxspeed)
+		end
 	end
 	
 	p.x+=cur_vx
@@ -279,6 +293,8 @@ last_ms = 0
 selected = nil
 mx = 0
 my = 0
+dx = 0
+dy = 0
 num_collisions = 0
 musicon = 1
 
@@ -417,6 +433,8 @@ function _draw()
 	--line(mx-4,my,mx+4,my,7)
 	--line(mx,my-4,mx,my+4,7)
 	
+	--print(cur_vx..","..cur_vy,cam_x+1,cam_y+1,7)
+	--print(dx..","..dy,cam_x+1,cam_y+8,7)
 	--print("%cpu: "..stat(1),cam_x+1,cam_y+1,7)
 	--print("#col: "..num_collisions,cam_x+1,cam_y+7,7)
 	--print(countstuff(),cam_x+1,cam_y+14,7)
