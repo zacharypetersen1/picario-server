@@ -87,7 +87,7 @@ canvas{
 		window.setTimeout(init, 5000);
 		
 		function init() {
-			websocket = new WebSocket("ws://picariogame.com/ws");
+			websocket = new WebSocket("ws://" + window.location.host + "/ws");
 			websocket.onopen = function(evt) { onOpen(evt) };
 			websocket.onclose = function(evt) { onClose(evt) };
 			websocket.onmessage = function(evt) { onMessage(evt) };
