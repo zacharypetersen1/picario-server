@@ -90,7 +90,7 @@ canvas{
 			if(window.location.protocol == "file:") {
 				websocket = new WebSocket("ws://localhost:8000");
 			} else {
-				websocket = new WebSocket("ws://picariogame.com/ws");
+				websocket = new WebSocket("ws://35.197.23.161:8080");
 			}
 			websocket.onopen = function(evt) { onOpen(evt) };
 			websocket.onclose = function(evt) { onClose(evt) };
