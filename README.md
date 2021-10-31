@@ -1,123 +1,19 @@
-## A Simple Websocket Server written in Python
+Try it out at [**zachpetersendev.com/picarioGame**](http://zachpetersendev.com/picarioGame/)
 
-- RFC 6455 (All latest browsers)
-- TLS/SSL out of the box
-- Passes Autobahns Websocket Testsuite
-- Support for Python 2 and 3
+You are a fruit. Eat the tiny dots to grow bigger, or eat other fruit that are smaller than you. Just make sure that none of the larger fruits eat you! Works on anything that can run a web browser.
 
-#### Installation
+Controls:
+Arrow Keys : Move
+Mouse : Click and hold to move in direction of cursor
+Touchscreen : Touch and hold to move in that direction
 
-You can install SimpleWebSocketServer by running the following command...
+This is a proof of concept game made by Dylan Tran, Zachary Petersen, John Chau, and Sterling Salvaterra. Special thanks to our amazing instructor Adam Smith at UC Santa Cruz for his advice and encouragement.
 
-`sudo pip install git+https://github.com/dpallot/simple-websocket-server.git`
+Our goal was to show that the PICO-8 can support a relatively massive number of simultaneous players in a single game given its constraints. We decided to recreate the popular agar.io to achieve this goal.
 
-Or by downloading the repository and running `sudo python setup.py install`.  
-Installation via pip is suggested.
+In our largest test, we had 35+ simultaneous players. Theoretically, the game can handle 64+ simultaneous players.
 
-#### Echo Server Example
-`````python
-from SimpleWebSocketServer import SimpleWebSocketServer, WebSocket
+One of the biggest challenges we faced is that there are only 128 bytes of GPIO in the PICO-8 meaning that the each client can only handle take in 128 bytes of Input/Output per frame. We decided to represent each object with six bytes, one for ID, one for size, two for X Coordinate, and two for Y Coordinate. With 128 bytes of I/O, that meant we could update 21 objects per frame. We designated three of these objects to output (The client telling the server about changes in the player's state and the state of any objects the player eats) and the other 18 to Input (The server telling the client about the change of objects in the world).
 
-class SimpleEcho(WebSocket):
+We wrote the server in python. Since the clients can only handle 18 updated objects per frame, we implemented a spatial hashing optimization so that each client only receives updates about objects that are nearby the player. The connection between the clients and the server is made using websockets.
 
-    def handleMessage(self):
-        # echo message back to client
-        self.sendMessage(self.data)
-
-    def handleConnected(self):
-        print self.address, 'connected'
-
-    def handleClose(self):
-        print self.address, 'closed'
-
-server = SimpleWebSocketServer('', 8000, SimpleEcho)
-server.serveforever()
-`````
-
-Open *websocket.html* and connect to the server.
-
-#### Chat Server Example
-`````python
-from SimpleWebSocketServer import SimpleWebSocketServer, WebSocket
-
-clients = []
-class SimpleChat(WebSocket):
-
-    def handleMessage(self):
-       for client in clients:
-          if client != self:
-             client.sendMessage(self.address[0] + u' - ' + self.data)
-
-    def handleConnected(self):
-       print self.address, 'connected'
-       for client in clients:
-          client.sendMessage(self.address[0] + u' - connected')
-       clients.append(self)
-
-    def handleClose(self):
-       clients.remove(self)
-       print self.address, 'closed'
-       for client in clients:
-          client.sendMessage(self.address[0] + u' - disconnected')
-
-server = SimpleWebSocketServer('', 8000, SimpleChat)
-server.serveforever()
-`````
-Open multiple *websocket.html* and connect to the server.
-
-#### Want to get up and running faster?
-
-There is an example which provides a simple echo and chat server
-
-Echo Server
-
-    python SimpleExampleServer.py --example echo
-
-Chat Server (open up multiple *websocket.html* files)
-
-    python SimpleExampleServer.py --example chat
-
-
-#### TLS/SSL Example
-
-1) Generate a certificate with key
-
-    openssl req -new -x509 -days 365 -nodes -out cert.pem -keyout cert.pem
-
-2) Run the secure TSL/SSL server (in this case the cert.pem file is in the same directory)
-
-    python SimpleExampleServer.py --example chat --ssl 1 --cert ./cert.pem
-
-3) Offer the certificate to the browser by serving *websocket.html* through https.
-The HTTPS server will look for cert.pem in the local directory.
-Ensure the *websocket.html* is also in the same directory to where the server is run.
-
-    sudo python SimpleHTTPSServer.py
-
-4) Open a web browser to: *https://localhost:443/websocket.html*
-
-5) Change *ws://localhost:8000/* to *wss://localhost:8000* and click connect.
-
-Note: if you are having problems connecting, ensure that the certificate is added in your browser against the exception *https://localhost:8000* or whatever host:port pair you want to connect to.
-
-#### For the Programmers
-
-handleConnected: called when handshake is complete
- - self.address: TCP address port tuple of the endpoint
-
-handleClose: called when the endpoint is closed or there is an error
-
-handleMessage: gets called when there is an incoming message from the client endpoint
- - self.opcode: the WebSocket frame type (STREAM, TEXT, BINARY)
- - self.data: bytearray (BINARY frame) or unicode string payload (TEXT frame)  
- - self.request: HTTP details from the WebSocket handshake (refer to BaseHTTPRequestHandler)
-
-sendMessage: send some text or binary data to the client endpoint
- - sending data as a unicode object will send a TEXT frame
- - sending data as a bytearray object will send a BINARY frame
-
-sendClose: send close frame to endpoint
-
-
----------------------
-The MIT License (MIT)
